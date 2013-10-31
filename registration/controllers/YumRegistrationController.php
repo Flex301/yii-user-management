@@ -25,8 +25,6 @@ class YumRegistrationController extends YumController {
 	public function beforeAction($action) {
 		if(!Yum::hasModule('registration'))
 			throw new CHttpException(401, 'Please activate the registration submodule in your config/main.php. See the installation instructions or registration/RegistrationModule.php for details');
-		if(!Yum::hasModule('profile'))
-			throw new CHttpException(401, 'The Registration submodule depends on the profile submodule. Please see the installation instructions or registration/RegistrationModule.php for details');
 
 		if(!Yii::app()->user->isGuest) 
 			$this->redirect(Yii::app()->user->returnUrl);
@@ -75,21 +73,17 @@ class YumRegistrationController extends YumController {
 
 		Yii::import('application.modules.profile.models.*');
 		$form = new YumRegistrationForm;
-		$profile = new YumProfile;
 
 		$this->performAjaxValidation('YumRegistrationForm', $form);
 
 		if (isset($_POST['YumRegistrationForm'])) { 
 			$form->attributes = $_POST['YumRegistrationForm'];
-			$profile->attributes = $_POST['YumProfile'];
 
 			$form->validate();
-			$profile->validate();
 
-			if(!$form->hasErrors() && !$profile->hasErrors()) {
+			if(!$form->hasErrors()) {
 				$user = new YumUser;
-				$user->register($form->username, $form->password, $profile);
-				$user->profile = $profile;
+				$user->register($form->email, $form->password, $form->firstname, $form->lastname);
 
 				$this->sendRegistrationEmail($user);
 				Yum::setFlash('Thank you for your registration. Please check your email.');
@@ -99,7 +93,6 @@ class YumRegistrationController extends YumController {
 
 		$this->render(Yum::module()->registrationView, array(
 					'form' => $form,
-					'profile' => $profile,
 					)
 				);  
 	}
@@ -107,18 +100,18 @@ class YumRegistrationController extends YumController {
 	// Send the Email to the given user object. 
 	// $user->profile->email needs to be set.
 	public function sendRegistrationEmail($user) {
-		if (!isset($user->profile->email)) 
+		if (!isset($user->email))
 			throw new CException(Yum::t('Email is not set when trying to send Registration Email'));
 
 		$activation_url = $user->getActivationUrl();
 
 		$body = strtr($this->textActivationBody, array(
-					'{username}' => $user->username,
+					'{name}' => $user->username,
 					'{activation_url}' => $activation_url));
 
 		$mail = array(
 				'from' => Yum::module('registration')->registrationEmail,
-				'to' => $user->profile->email,
+				'to' => $user->email,
 				'subject' => strtr($this->textActivationSubject, array(
 						'{username}' => $user->username)),
 				'body' => $body,

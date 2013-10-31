@@ -7,14 +7,7 @@
  * @package Yum.models
  */
 class YumRegistrationForm extends YumUser {
-	public $email;
-	public $terms; 
-	public $newsletter;
-	public $username;
-	public $password;
-	public $street;
-	public $city;
-	public $telephone;
+	public $terms;
 	public $verifyPassword;
 	public $verifyCode; // Captcha
 
@@ -22,8 +15,8 @@ class YumRegistrationForm extends YumUser {
 	{
 		$rules = parent::rules();
 
-		$rules[] = array('username', 'required');
-		$rules[] = array('newsletter, terms', 'safe');
+		$rules[] = array('email', 'required');
+		$rules[] = array('email', 'email');
 		// password requirement is already checked in YumUser model, its sufficient
 		// to check for verifyPasswort here
 		$rules[] = array('verifyPassword', 'required');

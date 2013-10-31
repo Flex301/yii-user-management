@@ -64,17 +64,11 @@ class YumAuthController extends YumController {
 	}
 
 	public function loginByEmail() {
-		if(Yum::hasModule('profile')) {
-			Yii::import('application.modules.profile.models.*');
+			$user = YumUser::model()->find('email = :email', array(
+						':email' => $this->loginForm->email));
 
-			$profile = YumProfile::model()->find('email = :email', array(
-						':email' => $this->loginForm->username));
-
-			if($profile && $profile->user)
-				return $this->authenticate($profile->user);
-		} else
-			throw new CException(Yum::t(
-						'The profile submodule must be enabled to allow login by Email'));
+			if($user)
+				return $this->authenticate($user);
 	}
 
 	public function loginByHybridAuth($provider) {
@@ -140,15 +134,15 @@ class YumAuthController extends YumController {
 	public function logFailedLoginAttempts($user) {
 		Yum::log(
 				Yum::t(
-					'Failed login attempt for user {username} (Ip-Address: {ip})', array(
+					'Failed login attempt for user {email} (Ip-Address: {ip})', array(
 						'{ip}' => Yii::app()->request->getUserHostAddress(),
-						'{username}' => $this->loginForm->username)), 'error');
-		$user->failedloginattempts++;
-		$user->save(false, array('failedloginattempts'));
+						'{email}' => $this->loginForm->email)), 'error');
+		//$user->failedloginattempts++;
+		//$user->save(false, array('failedloginattempts'));
 	}
 
 	public function authenticate($user) {
-		$identity = new YumUserIdentity($user->username, $this->loginForm->password);
+		$identity = new YumUserIdentity($user->email, $this->loginForm->password);
 		$identity->authenticate();
 		switch($identity->errorCode) {
 			case YumUserIdentity::ERROR_EMAIL_INVALID || YumUserIdentity::ERROR_PASSWORD_INVALID:
@@ -168,13 +162,13 @@ class YumAuthController extends YumController {
 				$duration = $this->loginForm->rememberMe ? Yum::module()->cookieDuration : 0; 
 				Yii::app()->user->login($identity, $duration);
 
-				if($user->failedloginattempts > 0) {
+/*				if($user->failedloginattempts > 0) {
 					Yum::setFlash(Yum::t(
 								'Warning: there have been {count} failed login attempts', array(
 									'{count}' => $user->failedloginattempts)));
 					$user->failedloginattempts = 0;
 					$user->save(false, array('failedloginattempts'));
-				}
+				}*/
 				return $user;
 				break;
 		}

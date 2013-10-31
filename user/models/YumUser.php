@@ -11,10 +11,17 @@ class YumUser extends YumActiveRecord
 	const STATUS_INACTIVE = 0;
 	const STATUS_ACTIVE = 1;
 
-	public $username;
 	public $password;
 	public $activationKey;
-	public $filter_role;
+    public $createtime;
+    public $email;
+    public $firstname;
+    public $lastname;
+    public $status;
+    public $superuser;
+    public $lastvisit;
+    public $lastpasswordchange;
+    public $lastaction;
 	public $password_changed = false; // flag for password change
 
 	public function behaviors()
@@ -210,58 +217,17 @@ class YumUser extends YumActiveRecord
 	}
 
 	public function rules() {
-		$usernameRequirements = Yum::module()->usernameRequirements;
 		$passwordRequirements = Yum::module()->passwordRequirements;
 
 		$passwordrule = array_merge(array('password', 'YumPasswordValidator'),
 				$passwordRequirements);
 
-		$rules[] = $passwordrule;
-
-		if($usernameRequirements) {
-			$rules[] = array('username', 'length',
-					'max' => $usernameRequirements['maxLen'],
-					'min' => $usernameRequirements['minLen'],
-					'message' => Yum::t(
-						'Username length needs to be between {minLen} and {maxlen} characters', array(
-							'{minLen}' => $usernameRequirements['minLen'],
-							'{maxLen}' => $usernameRequirements['maxLen'])));
-			$rules[] = array(
-					'username',
-					'match',
-					'pattern' => $usernameRequirements['match'],
-					'message' => Yum::t($usernameRequirements['dontMatchMessage']));
-		}
-
-		$rules[] = array('username', 'unique',
-				'message' => Yum::t('This username already exists'));
-
-		$rules[] = array(
-				'username',
-				'match',
-				'pattern' => $usernameRequirements['match'],
-				'message' => Yum::t($usernameRequirements['dontMatchMessage']));
-		$rules[] = array('status', 'in', 'range' => array(0, 1, 2, 3, -1, -2));
-		$rules[] = array('superuser', 'in', 'range' => array(0, 1));
-		$rules[] = array('username, createtime, lastvisit, lastpasswordchange, superuser, status', 'required');
-		$rules[] = array('notifyType, avatar', 'safe');
+		//$rules[] = array('status', 'in', 'range' => array(0, 1, 2, 3, -1, -2));
+		//$rules[] = array('superuser', 'in', 'range' => array(0, 1));
+		//$rules[] = array('createtime, lastvisit, lastpasswordchange, superuser, status', 'required', 'on' => array('insert'));
 		$rules[] = array('password', 'required', 'on' => array('insert', 'registration'));
+        $rules[] = $passwordrule;
 		$rules[] = array('createtime, lastvisit, lastaction, superuser, status', 'numerical', 'integerOnly' => true);
-
-		if (Yum::hasModule('avatar')) {
-			// require an avatar image in the avatar upload screen
-			$rules[] = array('avatar', 'required', 'on' => 'avatarUpload');
-
-			// if automatic scaling is deactivated, require the exact size	
-			$rules[] = array('avatar', 'EPhotoValidator',
-					'allowEmpty' => true,
-					'mimeType' => array('image/jpeg', 'image/png', 'image/gif'),
-					'maxWidth' => Yum::module('avatar')->avatarMaxWidth,
-					'maxHeight' => Yum::module('avatar')->avatarMaxWidth,
-					'minWidth' => 50,
-					'minHeight' => 50,
-					'on' => 'avatarSizeCheck');
-		}
 
 
 		if (Yum::hasModule('role')) 
@@ -371,8 +337,6 @@ class YumUser extends YumActiveRecord
 	// possible relations are cached because they depend on the active submodules
 	// and it takes many expensive milliseconds to evaluate them all the time
 	public function relations() {
-		$relations = Yii::app()->cache->get('yum_user_relations');
-		if($relations === false) {
 			$relations = array();
 
 			if (Yum::hasModule('role')) {
@@ -430,9 +394,6 @@ class YumUser extends YumActiveRecord
 				$relations['memberships'] = array(
 						self::HAS_MANY, 'YumMembership', 'user_id');
 			}
-
-			Yii::app()->cache->set('yum_user_relations', $relations, 3600);
-		}
 
 		return $relations;
 	}
@@ -522,35 +483,29 @@ class YumUser extends YumActiveRecord
 	}
 
 	// Registers a user 
-	public function register($username = null,
+	public function register($email = null,
 			$password = null,
-			$profile = null) {
-		if (!($profile instanceof YumProfile)) 
-			return false;
+            $firstname = null,
+            $lastname = null
+            ) {
 
-		if ($username !== null && $password !== null) {
+		if ($email !== null && $password !== null) {
 			// Password equality is checked in Registration Form
-			$this->username = $username;
+			$this->email = $email;
 			$this->setPassword($password);
 		}
 		$this->activationKey = $this->generateActivationKey(false);
 		$this->createtime = time();
 		$this->lastvisit = 0;
 		$this->superuser = 0;
+        $this->firstname = $firstname;
+        $this->lastname = $lastname;
 
 		// Users stay banned until they confirm their email address.
 		$this->status = YumUser::STATUS_INACTIVE;
 
-		// If the avatar module and avatar->enableGravatar is activated, we assume
-		// the user wants to use his Gravatar automatically after registration
-		if(Yum::hasModule('avatar') && Yum::module('avatar')->enableGravatar)
-			$this->avatar = 'gravatar';
-
-		if ($this->validate() && $profile->validate()) {
+		if ($this->validate()) {
 			$this->save();
-			$profile->user_id = $this->id;
-			$profile->save();
-			$this->profile = $profile;
 
 			if(Yum::hasModule('role'))
 				foreach(Yum::module('registration')->defaultRoles as $role) 
@@ -563,7 +518,7 @@ class YumUser extends YumActiveRecord
 			Yum::log(Yum::t('User {username} registered. Generated activation Url is {activation_url} and has been sent to {email}',
 						array(
 							'{username}' => $this->username,
-							'{email}' => $profile->email,
+							'{email}' => $this->email,
 							'{activation_url}' => $this->getActivationUrl()))
 					);
 
@@ -808,4 +763,9 @@ class YumUser extends YumActiveRecord
 			return $return;
 		}
 	}
+
+    public function getUsername()
+    {
+        return $this->firstname . ' ' . $this->lastname;
+    }
 }

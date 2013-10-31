@@ -18,7 +18,7 @@ class UserModule extends CWebModule {
 	public $enableBootstrap = true;
 
 	public $enableLogging = true;
-	public $enableOnlineStatus = true;
+	public $enableOnlineStatus = false;
 
 	// Cost for Password generation. See CPasswordHelper::hashPassword() for
 	// details. 
@@ -130,7 +130,7 @@ class UserModule extends CWebModule {
 	const LOGIN_BY_USERNAME	= 1;
 	const LOGIN_BY_EMAIL = 2;
 	const LOGIN_BY_HYBRIDAUTH	= 4;
-	public $loginType = 1;
+	public $loginType = 2;
 
 	public $hybridAuthConfigFile =  'protected/config/hybridauth.php';
 

@@ -3,28 +3,32 @@
 class YumUserIdentity extends CUserIdentity {
 	private $id;
 	public $user;
+	public $email;
 	const ERROR_EMAIL_INVALID=3;
 	const ERROR_STATUS_INACTIVE=4;
 	const ERROR_STATUS_BANNED=5;
 	const ERROR_STATUS_REMOVED=6;
 	const ERROR_STATUS_USER_DOES_NOT_EXIST=7;
 
+    public function __construct($email,$password)
+    {
+        $this->email=$email;
+        $this->password=$password;
+    }
+
+    public function getName()
+    {
+        return $this->username;
+    }
+
 	// Authenticate the user. When without_password is set to true, the user
 	// gets authenticated without providing a password. This is used for
 	// the option 'loginAfterSuccessfulActivation'
 	public function authenticate($without_password = false) {
-		$user = YumUser::model()->find('username = :username', array(
-					':username' => $this->username));
+		$user = YumUser::model()->find('email = :email', array(
+					':email' => $this->email));
 
 		// try to authenticate via email
-		if(Yum::hasModule('profile') 
-				&& Yum::module()->loginType & UserModule::LOGIN_BY_EMAIL
-				&& !$user) {
-			if($profile = YumProfile::model()->find('email = :email', array(
-							':email' => $this->username)))
-				if($profile->user)
-					$user = $profile->user;
-		}
 
 		if(!$user)
 			return self::ERROR_STATUS_USER_DOES_NOT_EXIST;

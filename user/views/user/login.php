@@ -56,7 +56,7 @@ if(Yum::module()->loginType & UserModule::LOGIN_BY_EMAIL)
 	printf ('<label for="YumUserLogin_username">%s <span class="required">*</span></label>', Yum::t('E-Mail address')); 
 	?>
 
-		<?php echo CHtml::activeTextField($model,'username') ?>
+		<?php echo CHtml::activeTextField($model,'email') ?>
 </div>
 
 <div class="row">

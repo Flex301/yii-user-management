@@ -12,34 +12,31 @@
 ?>
 
 <?php echo Yum::requiredFieldNote(); ?>
-<?php echo CHtml::errorSummary(array($form, $profile)); ?>
-
+<?php echo $activeform->errorSummary($form); ?>
 <div class="row">
 <div class="span12"> <?php
-echo $activeform->labelEx($form,'username');
-echo $activeform->textField($form,'username');
-?> </div></div>
-
-<div class="row">
-<div class="span12"> <?php
-echo $activeform->labelEx($profile,'email');
-echo $activeform->textField($profile,'email');
+echo $activeform->labelEx($form,'email');
+echo $activeform->textField($form,'email');
+echo $activeform->error($form,'email');
 ?> </div></div>
 
 <div class="row"><div class="span12"> <?php
-echo $activeform->labelEx($profile,'firstname');
-echo $activeform->textField($profile,'firstname');
+echo $activeform->labelEx($form,'firstname');
+echo $activeform->textField($form,'firstname');
+echo $activeform->error($form,'firstname');
 ?> </div></div>
 
 <div class="row"><div class="span12"> <?php
-echo $activeform->labelEx($profile,'lastname');
-echo $activeform->textField($profile,'lastname');
+echo $activeform->labelEx($form,'lastname');
+echo $activeform->textField($form,'lastname');
+echo $activeform->error($form,'firstname');
 ?> </div></div>
 
 <div class="row">
 <div class="span12">
 <?php echo $activeform->labelEx($form,'password'); ?>
 <?php echo $activeform->passwordField($form,'password'); ?>
+<?php echo $activeform->error($form,'password'); ?>
 </div>
 </div>
 
@@ -47,6 +44,7 @@ echo $activeform->textField($profile,'lastname');
 <div class="span12">
 <?php echo $activeform->labelEx($form,'verifyPassword'); ?>
 <?php echo $activeform->passwordField($form,'verifyPassword'); ?>
+<?php echo $activeform->error($form,'verifyPassword'); ?>
 </div></div>
 
 <?php if(extension_loaded('gd') 
@@ -66,7 +64,7 @@ echo $activeform->textField($profile,'lastname');
 	
 	<div class="row submit">
     <div class="span12">
-		<?php echo CHtml::submitButton(Yum::t('Registration'), array('class'=>'btn')); ?>
+		<?php echo CHtml::submitButton(Yii::t('user', 'Registration'), array('class'=>'btn')); ?>
         </div>
 	</div>
 

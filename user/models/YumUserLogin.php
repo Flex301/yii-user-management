@@ -6,7 +6,7 @@
  * user login form data. It is used by the 'login' action of 'YumUserController'.
  */
 class YumUserLogin extends YumFormModel {
-	public $username;
+	public $email;
 	public $password;
 	public $rememberMe;
 	public $verifyCode; // captcha 
@@ -21,7 +21,7 @@ class YumUserLogin extends YumFormModel {
 			$this->scenario = 'login';
 
 		$rules = array(
-				array('username, password', 'required', 'on' => 'login'),
+				array('email, password', 'required', 'on' => 'login'),
 				array('rememberMe', 'boolean'),
 				);
 
@@ -29,7 +29,7 @@ class YumUserLogin extends YumFormModel {
 			$rules[] = array( 'verifyCode', 'captcha', 'on' => 'captcha',
 					'allowEmpty' => !CCaptcha::checkRequirements(),
 					);
-			$rules[] = array('username, password', 'required', 'on' => 'captcha');
+			$rules[] = array('email, password', 'required', 'on' => 'captcha');
 		}
 
 		return $rules;
@@ -37,7 +37,7 @@ class YumUserLogin extends YumFormModel {
 
 	public function attributeLabels() {
 		return array(
-				'username'=>Yum::t('Name'),
+				'email'=>Yum::t('Email'),
 				'password'=>Yum::t("Password"),
 				'rememberMe'=>Yum::t("Remember me next time"),
 				'verifyCode'=>Yum::t("Verification code"),

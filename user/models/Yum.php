@@ -103,6 +103,7 @@ class Yum
 	/** Fetch the translation string from db and cache when necessary */
 	public static function t($string, $params = array(), $category = 'yum')
 	{
+        return Yii::t($category, $string, $params);
 		$language = Yii::app()->language;
 
 		$cache_id = sprintf('yum_translations_%s_%s', $language, $category);
